@@ -19,7 +19,7 @@ A pure Bash LLM API wrapper for interacting with various LLM providers.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/curllm.git
+git clone https://github.com/AR-92/curllm.git
 cd curllm
 
 # Install (copies files to /usr/local/bin and /usr/local/lib)
