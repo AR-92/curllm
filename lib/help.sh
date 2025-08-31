@@ -24,6 +24,54 @@ show_basic_help() {
     echo "Use 'curllm help --verbose' for comprehensive help"
 }
 
+# Function to display the current help (matching utils.sh)
+show_help() {
+    echo "curllm - A pure Bash LLM API wrapper"
+    echo ""
+    echo "Usage:"
+    echo "  curllm [command] [options]"
+    echo ""
+    echo "Commands:"
+    echo "  chat <prompt>     Send a chat completion request"
+    echo "  help              Show this help message"
+    echo "  version           Show version information"
+    echo ""
+    echo "Options:"
+    echo "  --provider <name>  Specify provider (openai, anthropic, qwen, mistral, gemini, openrouter, groq)"
+    echo "  --model <name>     Specify model name"
+    echo "  --verbose          Enable verbose logging"
+    echo "  --help, -h         Show help for a command"
+    echo "  --version, -v      Show version"
+    echo ""
+    echo "Supported Providers:"
+    echo "  openai      - OpenAI GPT models"
+    echo "  anthropic   - Anthropic Claude models"
+    echo "  qwen        - Alibaba Qwen models"
+    echo "  mistral     - Mistral AI models"
+    echo "  gemini      - Google Gemini models"
+    echo "  openrouter  - OpenRouter models"
+    echo "  groq        - Groq models"
+    echo ""
+    echo "Configuration:"
+    echo "  Config file: ~/.config/curllm/config"
+    echo "  Default provider and model can be set in config file"
+    echo "  Log file: ~/.cache/curllm/curllm.log"
+    echo ""
+    echo "Environment Variables:"
+    echo "  MOCK_MODE=true     Enable mock mode (no real API calls)"
+    echo "  XDG_CONFIG_HOME    Config directory (default: ~/.config)"
+    echo "  XDG_CACHE_HOME     Log directory (default: ~/.cache)"
+    echo ""
+    echo "Examples:"
+    echo "  curllm chat \"What is the capital of France?\""
+    echo "  curllm chat --provider qwen \"Explain quantum computing\""
+    echo "  curllm chat --provider groq --model llama3-8b-8192 \"What is Bash?\""
+    echo "  curllm chat --verbose \"Debug this request\""
+    echo "  MOCK_MODE=true curllm chat \"Test prompt\""
+    echo ""
+    echo "For more information, visit: https://github.com/AR-92/curllm"
+}
+
 # Function to display verbose help
 show_verbose_help() {
     echo "curllm - Universal LLM API Wrapper"
@@ -135,71 +183,4 @@ show_verbose_help() {
     echo "  Modular provider system for easy extensions"
     echo ""
     echo "For complete documentation, visit: https://github.com/AR-92/curllm"
-}
-
-# Function to display help for specific command
-show_command_help() {
-    local command="$1"
-    case "$command" in
-        "chat")
-            echo "CHAT COMMAND"
-            echo "============"
-            echo ""
-            echo "Send a chat completion request to an LLM provider."
-            echo ""
-            echo "USAGE:"
-            echo "  curllm chat [OPTIONS] <prompt>"
-            echo ""
-            echo "ARGUMENTS:"
-            echo "  prompt    The text prompt to send to the LLM"
-            echo "            Can be a single string or multi-line text"
-            echo ""
-            echo "OPTIONS:"
-            echo "  --provider <name>    Specify LLM provider"
-            echo "  --model <name>       Specify model name"
-            echo "  --verbose            Enable detailed logging"
-            echo ""
-            echo "EXAMPLES:"
-            echo "  curllm chat \"What is artificial intelligence?\""
-            echo "  curllm chat --provider anthropic \"Compare Python and JavaScript\""
-            echo "  curllm chat --provider groq --model llama3-8b-8192 \"Optimize this code\""
-            echo "  curllm chat --verbose \"Debug this complex prompt\""
-            ;;
-        "help")
-            echo "HELP COMMAND"
-            echo "============"
-            echo ""
-            echo "Show help information about curllm."
-            echo ""
-            echo "USAGE:"
-            echo "  curllm help [OPTIONS]"
-            echo ""
-            echo "OPTIONS:"
-            echo "  --verbose    Show detailed help information"
-            echo ""
-            echo "EXAMPLES:"
-            echo "  curllm help"
-            echo "  curllm help --verbose"
-            echo "  curllm --help"
-            echo "  curllm -h"
-            ;;
-        "version")
-            echo "VERSION COMMAND"
-            echo "==============="
-            echo ""
-            echo "Show version information for curllm."
-            echo ""
-            echo "USAGE:"
-            echo "  curllm version"
-            echo ""
-            echo "EXAMPLES:"
-            echo "  curllm version"
-            echo "  curllm --version"
-            echo "  curllm -v"
-            ;;
-        *)
-            echo "Unknown command: $command"
-            echo "Use 'curllm help' for available commands"
-            ;;
-    esac
 }
