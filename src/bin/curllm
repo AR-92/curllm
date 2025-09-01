@@ -1,0 +1,354 @@
+#!/usr/bin/env bash
+
+# Add debug output to the main script
+
+# Source our libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="$(dirname "$SCRIPT_DIR")/lib"
+PROVIDERS_DIR="$(dirname "$SCRIPT_DIR")/providers"
+
+# Source config library
+if [[ -f "$LIB_DIR/config.sh" ]]; then
+    source "$LIB_DIR/config.sh"
+else
+    echo "Error: Missing config library"
+    exit 1
+fi
+
+# Source security library
+if [[ -f "$LIB_DIR/security.sh" ]]; then
+    source "$LIB_DIR/security.sh"
+else
+    echo "Error: Missing security library"
+    exit 1
+fi
+
+# Source utils library
+if [[ -f "$LIB_DIR/utils.sh" ]]; then
+    source "$LIB_DIR/utils.sh"
+else
+    echo "Error: Missing utils library"
+    exit 1
+fi
+
+# Source help library
+if [[ -f "$LIB_DIR/help.sh" ]]; then
+    source "$LIB_DIR/help.sh"
+else
+    echo "Error: Missing help library"
+    exit 1
+fi
+
+# Source logging library
+if [[ -f "$LIB_DIR/logging.sh" ]]; then
+    source "$LIB_DIR/logging.sh"
+else
+    echo "Error: Missing logging library"
+    exit 1
+fi
+
+# Function to display version
+show_version() {
+    echo "curllm v0.1.0"
+}
+
+# Function to display usage
+usage() {
+    show_help
+}
+
+# Function to send chat completion request
+send_chat_completion() {
+    local prompt="$1"
+    local provider="$2"
+    local model="$3"
+    
+    log_info "Sending chat completion request to provider: $provider, model: $model"
+    
+    # Source the provider module
+    local provider_file="$PROVIDERS_DIR/${provider}.sh"
+    if [[ -f "$provider_file" ]]; then
+        source "$provider_file"
+    else
+        log_error "Provider '$provider' not supported"
+        echo "Error: Provider '$provider' not supported" >&2
+        return 1
+    fi
+    
+    # Call the provider-specific function
+    case "$provider" in
+        openai)
+            if declare -f openai_chat_completion >/dev/null; then
+                openai_chat_completion "$prompt" "$model"
+            else
+                log_error "openai_chat_completion function not found"
+                echo "Error: openai_chat_completion function not found" >&2
+                return 1
+            fi
+            ;;
+        qwen)
+            if declare -f qwen_chat_completion >/dev/null; then
+                qwen_chat_completion "$prompt" "$model"
+            else
+                log_error "qwen_chat_completion function not found"
+                echo "Error: qwen_chat_completion function not found" >&2
+                return 1
+            fi
+            ;;
+        anthropic)
+            if declare -f anthropic_chat_completion >/dev/null; then
+                anthropic_chat_completion "$prompt" "$model"
+            else
+                log_error "anthropic_chat_completion function not found"
+                echo "Error: anthropic_chat_completion function not found" >&2
+                return 1
+            fi
+            ;;
+        mistral)
+            if declare -f mistral_chat_completion >/dev/null; then
+                mistral_chat_completion "$prompt" "$model"
+            else
+                log_error "mistral_chat_completion function not found"
+                echo "Error: mistral_chat_completion function not found" >&2
+                return 1
+            fi
+            ;;
+        gemini)
+            if declare -f gemini_chat_completion >/dev/null; then
+                gemini_chat_completion "$prompt" "$model"
+            else
+                log_error "gemini_chat_completion function not found"
+                echo "Error: gemini_chat_completion function not found" >&2
+                return 1
+            fi
+            ;;
+        openrouter)
+            if declare -f openrouter_chat_completion >/dev/null; then
+                openrouter_chat_completion "$prompt" "$model"
+            else
+                log_error "openrouter_chat_completion function not found"
+                echo "Error: openrouter_chat_completion function not found" >&2
+                return 1
+            fi
+            ;;
+        groq)
+            if declare -f groq_chat_completion >/dev/null; then
+                groq_chat_completion "$prompt" "$model"
+            else
+                log_error "groq_chat_completion function not found"
+                echo "Error: groq_chat_completion function not found" >&2
+                return 1
+            fi
+            ;;
+        *)
+            log_error "Provider '$provider' not implemented"
+            echo "Error: Provider '$provider' not implemented" >&2
+            return 1
+            ;;
+    esac
+}
+
+# Parse command line arguments
+parse_args() {
+    local provider=""
+    local model=""
+    local command=""
+    local prompt=""
+    local verbose=0
+    local help_verbose=0
+    
+    # Process all arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            chat)
+                command="chat"
+                shift
+                # Collect the rest as prompt
+                prompt="$*"
+                break
+                ;;
+            help)
+                command="help"
+                shift
+                # Check if --verbose follows
+                if [[ "${1:-}" == "--verbose" ]]; then
+                    help_verbose=1
+                    shift
+                fi
+                break
+                ;;
+            version)
+                command="version"
+                shift
+                break
+                ;;
+            --help|-h)
+                command="help"
+                shift
+                # Check if --verbose follows
+                if [[ "${1:-}" == "--verbose" ]]; then
+                    help_verbose=1
+                    shift
+                fi
+                break
+                ;;
+            --version|-v)
+                command="version"
+                shift
+                break
+                ;;
+            --verbose)
+                verbose=1
+                shift
+                ;;
+            --provider)
+                if [[ -n "${2:-}" ]]; then
+                    provider="$2"
+                    shift 2
+                else
+                    log_error "--provider requires a value"
+                    echo "Error: --provider requires a value" >&2
+                    exit 1
+                fi
+                ;;
+            --model)
+                if [[ -n "${2:-}" ]]; then
+                    model="$2"
+                    shift 2
+                else
+                    log_error "--model requires a value"
+                    echo "Error: --model requires a value" >&2
+                    exit 1
+                fi
+                ;;
+            *)
+                # If we get here and no command is set, show help
+                echo "|||"
+                return
+                ;;
+        esac
+    done
+    
+    # Handle help command with verbose
+    if [[ "$command" == "help" ]] && [[ "$help_verbose" == "1" ]]; then
+        echo "help_verbose|||"
+        return
+    fi
+    
+    if [[ "$command" == "help" ]]; then
+        echo "help|||"
+        return
+    fi
+    
+    if [[ "$command" == "version" ]]; then
+        echo "version|||"
+        return
+    fi
+    
+    echo "$command|$provider|$model|$prompt|$verbose|$help_verbose"
+}
+
+# Main function
+main() {
+    # Load configuration
+    load_config
+    
+    # Parse arguments
+    local parsed_args
+    parsed_args=$(parse_args "$@")
+    
+    # DEBUG: Print what we received
+    echo "DEBUG: parsed_args = '$parsed_args'" >&2
+    
+    # Check if we just need to show help or version
+    if [[ "$parsed_args" == "help_verbose|||" ]]; then
+        echo "DEBUG: Calling show_verbose_help" >&2
+        show_verbose_help
+        exit 0
+    fi
+    
+    if [[ "$parsed_args" == "help|||" ]] || [[ "$parsed_args" == "|||" ]]; then
+        echo "DEBUG: Calling show_help" >&2
+        show_help
+        exit 0
+    fi
+    
+    if [[ "$parsed_args" == "version|||" ]]; then
+        echo "DEBUG: Calling show_version" >&2
+        show_version
+        exit 0
+    fi
+    
+    # Extract parsed values
+    IFS='|' read -r command provider model prompt verbose help_verbose <<< "$parsed_args"
+    
+    # Set log level based on verbose flag
+    if [[ "$verbose" == "1" ]]; then
+        set_log_level "debug"
+        log_info "Verbose mode enabled"
+    else
+        set_log_level "info"
+    fi
+    
+    log_info "curllm started with command: $command"
+    
+    # Use config values if not provided via command line
+    provider=${provider:-$DEFAULT_PROVIDER}
+    model=${model:-$DEFAULT_MODEL}
+    
+    case "$command" in
+        chat)
+            # Check if prompt is provided
+            if [[ -z "$prompt" ]]; then
+                log_error "No prompt provided"
+                echo "Error: No prompt provided"
+                usage
+                exit 1
+            fi
+            
+            log_info "Processing chat request with provider: $provider, model: $model"
+            
+            # Validate API key (skip in mock mode)
+            if [[ "${MOCK_MODE:-false}" != "true" ]]; then
+                if ! validate_api_key "$provider"; then
+                    log_error "API key validation failed for provider: $provider"
+                    exit 1
+                fi
+            else
+                log_info "Mock mode enabled, skipping API key validation"
+            fi
+            
+            # Send chat completion request
+            log_debug "Sending prompt: $prompt"
+            response=$(send_chat_completion "$prompt" "$provider" "$model")
+            exit_code=$?
+            
+            if [[ $exit_code -eq 0 ]]; then
+                log_info "Successfully received response from provider: $provider"
+                echo "Prompt: $prompt"
+                echo "Response: $response"
+            else
+                log_error "Failed to get response from provider: $provider"
+                echo "Error: Failed to get response from $provider"
+                exit 1
+            fi
+            ;;
+        "")
+            # No command provided, show help
+            log_info "No command provided, showing help"
+            show_help
+            exit 0
+            ;;
+        *)
+            log_error "Unknown command: $command"
+            echo "Error: Unknown command '$command'"
+            usage
+            exit 1
+            ;;
+    esac
+    
+    log_info "curllm finished successfully"
+}
+
+# Run main function with all arguments
+main "$@"
