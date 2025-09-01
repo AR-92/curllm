@@ -34,6 +34,14 @@ else
     exit 1
 fi
 
+# Source help library
+if [[ -f "$LIB_DIR/help.sh" ]]; then
+    source "$LIB_DIR/help.sh"
+else
+    echo "Error: Missing help library"
+    exit 1
+fi
+
 # Source logging library
 if [[ -f "$LIB_DIR/logging.sh" ]]; then
     source "$LIB_DIR/logging.sh"
@@ -150,32 +158,47 @@ parse_args() {
     local command=""
     local prompt=""
     local verbose=0
+    local help_verbose=0
     
-    # First, check if the first argument is a command
-    if [[ $# -gt 0 ]]; then
-        case $1 in
-            chat|help|version|--help|-h|--version|-v|--verbose|-v)
-                command="$1"
-                shift
-                ;;
-            *)
-                # If first argument is not a recognized command, show help
-                echo "|||"
-                return
-                ;;
-        esac
-    fi
-    
-    # Process remaining arguments
+    # Process all arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
-            help|--help|-h)
-                echo "help|||"
-                return
+            chat)
+                command="chat"
+                shift
+                # Collect the rest as prompt
+                prompt="$*"
+                break
                 ;;
-            version|--version|-v)
-                echo "version|||"
-                return
+            help)
+                command="help"
+                shift
+                # Check if --verbose follows
+                if [[ "${1:-}" == "--verbose" ]]; then
+                    help_verbose=1
+                    shift
+                fi
+                break
+                ;;
+            version)
+                command="version"
+                shift
+                break
+                ;;
+            --help|-h)
+                command="help"
+                shift
+                # Check if --verbose follows
+                if [[ "${1:-}" == "--verbose" ]]; then
+                    help_verbose=1
+                    shift
+                fi
+                break
+                ;;
+            --version|-v)
+                command="version"
+                shift
+                break
                 ;;
             --verbose)
                 verbose=1
@@ -202,29 +225,30 @@ parse_args() {
                 fi
                 ;;
             *)
-                # Everything else is part of the prompt
-                if [[ -n "$prompt" ]]; then
-                    prompt="$prompt $1"
-                else
-                    prompt="$1"
-                fi
-                shift
+                # If we get here and no command is set, show help
+                echo "|||"
+                return
                 ;;
         esac
     done
     
-    # Special handling for help and version commands
-    if [[ "$command" == "help" ]] || [[ "$command" == "--help" ]] || [[ "$command" == "-h" ]]; then
+    # Handle help command with verbose
+    if [[ "$command" == "help" ]] && [[ "$help_verbose" == "1" ]]; then
+        echo "help_verbose|||"
+        return
+    fi
+    
+    if [[ "$command" == "help" ]]; then
         echo "help|||"
         return
     fi
     
-    if [[ "$command" == "version" ]] || [[ "$command" == "--version" ]] || [[ "$command" == "-v" ]]; then
+    if [[ "$command" == "version" ]]; then
         echo "version|||"
         return
     fi
     
-    echo "$command|$provider|$model|$prompt|$verbose"
+    echo "$command|$provider|$model|$prompt|$verbose|$help_verbose"
 }
 
 # Main function
@@ -237,6 +261,11 @@ main() {
     parsed_args=$(parse_args "$@")
     
     # Check if we just need to show help or version
+    if [[ "$parsed_args" == "help_verbose|||" ]]; then
+        show_verbose_help
+        exit 0
+    fi
+    
     if [[ "$parsed_args" == "help|||" ]] || [[ "$parsed_args" == "|||" ]]; then
         show_help
         exit 0
@@ -248,7 +277,7 @@ main() {
     fi
     
     # Extract parsed values
-    IFS='|' read -r command provider model prompt verbose <<< "$parsed_args"
+    IFS='|' read -r command provider model prompt verbose help_verbose <<< "$parsed_args"
     
     # Set log level based on verbose flag
     if [[ "$verbose" == "1" ]]; then
