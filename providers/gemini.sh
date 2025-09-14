@@ -2,6 +2,50 @@
 
 # gemini.sh - Google Gemini provider for curllm
 
+# Function to list available models for Google Gemini
+gemini_list_models() {
+    # Check if we're in mock mode
+    if [[ "${MOCK_MODE:-false}" == "true" ]]; then
+        echo "gemini-1.5-pro-latest (mock)"
+        echo "gemini-1.5-pro (mock)"
+        echo "gemini-1.5-flash-latest (mock)"
+        echo "gemini-1.5-flash (mock)"
+        echo "gemini-1.0-pro (mock)"
+        echo "gemini-pro (mock)"
+        echo "gemini-pro-vision (mock)"
+        return 0
+    fi
+    
+    # Get API key
+    local api_key
+    api_key=$(get_api_key "gemini")
+    
+    # Validate API key
+    if [[ -z "$api_key" ]]; then
+        echo "Error: No Google Gemini API key found" >&2
+        return 1
+    fi
+    
+    # Make API request to list models
+    local response
+    response=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models?key=$api_key")
+    
+    # Check if we got a valid response
+    if echo "$response" | jq -e .models >/dev/null 2>&1; then
+        # Extract and list model names
+        echo "$response" | jq -r '.models[].name' | sed 's/models\///'
+    else
+        # Fallback to static list
+        echo "gemini-1.5-pro-latest"
+        echo "gemini-1.5-pro"
+        echo "gemini-1.5-flash-latest"
+        echo "gemini-1.5-flash"
+        echo "gemini-1.0-pro"
+        echo "gemini-pro"
+        echo "gemini-pro-vision"
+    fi
+}
+
 # Function to send a chat completion request to Google Gemini
 gemini_chat_completion() {
     local prompt="$1"

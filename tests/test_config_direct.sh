@@ -9,7 +9,7 @@ TEST_DIR="/tmp/curllm_simple_test"
 mkdir -p "$TEST_DIR"
 
 # Copy curllm and lib to test directory
-cp -r /home/rana/Documents/Projects/curllm/bin /home/rana/Documents/Projects/curllm/lib "$TEST_DIR/"
+cp -r ../bin ../lib "$TEST_DIR/"
 
 # Create a test config file
 mkdir -p "$TEST_DIR/.config/curllm"

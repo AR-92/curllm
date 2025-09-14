@@ -9,7 +9,7 @@ TEST_DIR="/tmp/curllm_openai_test"
 mkdir -p "$TEST_DIR"
 
 # Copy curllm, lib, and providers to test directory
-cp -r /home/rana/Documents/Projects/curllm/bin /home/rana/Documents/Projects/curllm/lib /home/rana/Documents/Projects/curllm/providers "$TEST_DIR/"
+cp -r bin lib providers "$TEST_DIR/"
 
 # Create a test config file with API key
 mkdir -p "$TEST_DIR/.config/curllm"

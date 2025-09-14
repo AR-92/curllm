@@ -2,6 +2,34 @@
 
 # qwen.sh - Qwen provider for curllm
 
+# Function to list available models for Qwen
+qwen_list_models() {
+    # Check if we're in mock mode
+    if [[ "${MOCK_MODE:-false}" == "true" ]]; then
+        echo "qwen-turbo (mock)"
+        echo "qwen-plus (mock)"
+        echo "qwen-max (mock)"
+        echo "qwen-max-longcontext (mock)"
+        return 0
+    fi
+    
+    # Get API key
+    local api_key
+    api_key=$(get_api_key "qwen")
+    
+    # Validate API key
+    if [[ -z "$api_key" ]]; then
+        echo "Error: No Qwen API key found" >&2
+        return 1
+    fi
+    
+    # For Qwen, we'll return a static list since there's no API to list models
+    echo "qwen-turbo"
+    echo "qwen-plus"
+    echo "qwen-max"
+    echo "qwen-max-longcontext"
+}
+
 # Function to send a chat completion request to Qwen
 qwen_chat_completion() {
     local prompt="$1"

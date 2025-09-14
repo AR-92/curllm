@@ -10,9 +10,9 @@ mkdir -p "$TEST_DIR"
 
 # Copy curllm and lib to test directory, maintaining directory structure
 mkdir -p "$TEST_DIR/bin" "$TEST_DIR/lib" "$TEST_DIR/providers"
-cp /home/rana/Documents/Projects/curllm/bin/curllm "$TEST_DIR/bin/"
-cp /home/rana/Documents/Projects/curllm/lib/*.sh "$TEST_DIR/lib/"
-cp /home/rana/Documents/Projects/curllm/providers/*.sh "$TEST_DIR/providers/"
+cp bin/curllm "$TEST_DIR/bin/"
+cp lib/*.sh "$TEST_DIR/lib/"
+cp providers/*.sh "$TEST_DIR/providers/"
 
 echo "Testing installation scenarios..."
 
@@ -32,7 +32,7 @@ required_files=(
 )
 
 for file in "${required_files[@]}"; do
-    if [[ -f "/home/rana/Documents/Projects/curllm/$file" ]]; then
+    if [[ -f "../$file" ]]; then
         echo "PASS: Required file $file is present"
     else
         echo "FAIL: Required file $file is missing"
@@ -46,7 +46,7 @@ functions=("chat_completion")
 
 for provider in "${providers[@]}"; do
     # Source the provider script
-    source "/home/rana/Documents/Projects/curllm/providers/${provider}.sh"
+    source "providers/${provider}.sh"
     
     # Check if the function exists
     function_name="${provider}_chat_completion"

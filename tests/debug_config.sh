@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # Source our config library
-LIB_DIR="/home/rana/Documents/Projects/curllm/lib"
+LIB_DIR="../lib"
 source "$LIB_DIR/config.sh"
 
 # Create a test config file

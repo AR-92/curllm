@@ -50,6 +50,14 @@ else
     exit 1
 fi
 
+# Source models library
+if [[ -f "$LIB_DIR/models.sh" ]]; then
+    source "$LIB_DIR/models.sh"
+else
+    echo "Error: Missing models library"
+    exit 1
+fi
+
 # Function to display version
 show_version() {
     echo "curllm v0.1.0"
@@ -159,6 +167,8 @@ parse_args() {
     local prompt=""
     local verbose=0
     local help_verbose=0
+    local provider_provided=0
+    local model_provided=0
     
     # Process all arguments
     while [[ $# -gt 0 ]]; do
@@ -166,9 +176,6 @@ parse_args() {
             chat)
                 command="chat"
                 shift
-                # Collect the rest as prompt
-                prompt="$*"
-                break
                 ;;
             help)
                 command="help"
@@ -184,6 +191,18 @@ parse_args() {
                 command="version"
                 shift
                 break
+                ;;
+            list-models)
+                command="list-models"
+                shift
+                ;;
+            browse-models)
+                command="browse-models"
+                shift
+                ;;
+            set-default)
+                command="set-default"
+                shift
                 ;;
             --help|-h)
                 command="help"
@@ -207,6 +226,7 @@ parse_args() {
             --provider)
                 if [[ -n "${2:-}" ]]; then
                     provider="$2"
+                    provider_provided=1
                     shift 2
                 else
                     log_error "--provider requires a value"
@@ -217,6 +237,7 @@ parse_args() {
             --model)
                 if [[ -n "${2:-}" ]]; then
                     model="$2"
+                    model_provided=1
                     shift 2
                 else
                     log_error "--model requires a value"
@@ -225,9 +246,17 @@ parse_args() {
                 fi
                 ;;
             *)
-                # If we get here and no command is set, show help
-                echo "|||"
-                return
+                # If we get here and no command is set, treat as prompt for chat
+                if [[ -z "$command" ]]; then
+                    command="chat"
+                    # Collect the rest as prompt
+                    prompt="$*"
+                    break
+                else
+                    # If command is already set, treat as part of prompt
+                    prompt="$prompt $1"
+                    shift
+                fi
                 ;;
         esac
     done
@@ -248,6 +277,21 @@ parse_args() {
         return
     fi
     
+    if [[ "$command" == "list-models" ]]; then
+        echo "list-models|$provider||||"
+        return
+    fi
+    
+    if [[ "$command" == "browse-models" ]]; then
+        echo "browse-models|$provider||||"
+        return
+    fi
+    
+    if [[ "$command" == "set-default" ]]; then
+        echo "set-default|$provider|$model||||$provider_provided|$model_provided"
+        return
+    fi
+    
     echo "$command|$provider|$model|$prompt|$verbose|$help_verbose"
 }
 
@@ -260,24 +304,17 @@ main() {
     local parsed_args
     parsed_args=$(parse_args "$@")
     
-    # Check if we just need to show help or version
-    if [[ "$parsed_args" == "help_verbose|||" ]]; then
-        show_verbose_help
-        exit 0
-    fi
-    
-    if [[ "$parsed_args" == "help|||" ]] || [[ "$parsed_args" == "|||" ]]; then
-        show_help
-        exit 0
-    fi
-    
-    if [[ "$parsed_args" == "version|||" ]]; then
-        show_version
-        exit 0
-    fi
-    
     # Extract parsed values
-    IFS='|' read -r command provider model prompt verbose help_verbose <<< "$parsed_args"
+    local fields=()
+    IFS='|' read -ra fields <<< "$parsed_args"
+    command="${fields[0]}"
+    provider="${fields[1]}"
+    model="${fields[2]}"
+    prompt="${fields[3]:-}"
+    verbose="${fields[4]:-}"
+    help_verbose="${fields[5]:-}"
+    provider_provided="${fields[6]:-}"
+    model_provided="${fields[7]:-}"
     
     # Set log level based on verbose flag
     if [[ "$verbose" == "1" ]]; then
@@ -330,6 +367,50 @@ main() {
                 exit 1
             fi
             ;;
+        "help")
+            # Show help
+            show_help
+            exit 0
+            ;;
+        "list-models")
+            log_info "Listing models for provider: $provider"
+            
+            # Use config value if not provided via command line
+            provider=${provider:-$DEFAULT_PROVIDER}
+            
+            # List models for the provider
+            echo "Available models for $provider:"
+            list_models "$provider"
+            ;;
+        "browse-models")
+            log_info "Browsing models for provider: $provider"
+            
+            # Use config value if not provided via command line
+            provider=${provider:-$DEFAULT_PROVIDER}
+            
+            # Browse models interactively
+            browse_models "$provider"
+            ;;
+        "set-default")
+            log_info "Setting default model: $model for provider: $provider"
+            
+            # Check if provider and model were explicitly provided
+            if [[ "$provider_provided" != "1" ]] || [[ "$model_provided" != "1" ]]; then
+                log_error "Both --provider and --model are required for set-default command"
+                echo "Error: Both --provider and --model are required for set-default command" >&2
+                echo ""
+                show_help
+                exit 1
+            fi
+            
+            # Set default model
+            set_default_model "$provider" "$model"
+            ;;
+        "version")
+            # Show version
+            show_version
+            exit 0
+            ;;
         "")
             # No command provided, show help
             log_info "No command provided, showing help"
@@ -343,8 +424,6 @@ main() {
             exit 1
             ;;
     esac
-    
-    log_info "curllm finished successfully"
 }
 
 # Run main function with all arguments

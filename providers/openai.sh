@@ -2,6 +2,47 @@
 
 # openai.sh - OpenAI provider for curllm
 
+# Function to list available models for OpenAI
+openai_list_models() {
+    # Check if we're in mock mode
+    if [[ "${MOCK_MODE:-false}" == "true" ]]; then
+        echo "gpt-4-turbo (mock)"
+        echo "gpt-4 (mock)"
+        echo "gpt-4-32k (mock)"
+        echo "gpt-3.5-turbo (mock)"
+        echo "gpt-3.5-turbo-16k (mock)"
+        return 0
+    fi
+    
+    # Get API key
+    local api_key
+    api_key=$(get_api_key "openai")
+    
+    # Validate API key
+    if [[ -z "$api_key" ]]; then
+        echo "Error: No OpenAI API key found" >&2
+        return 1
+    fi
+    
+    # Make API request to list models
+    local response
+    response=$(curl -s -H "Authorization: Bearer $api_key" \
+        "https://api.openai.com/v1/models")
+    
+    # Check if we got a valid response
+    if echo "$response" | jq -e .data >/dev/null 2>&1; then
+        # Extract and list model names
+        echo "$response" | jq -r '.data[].id'
+    else
+        # Fallback to static list
+        echo "gpt-4-turbo"
+        echo "gpt-4"
+        echo "gpt-4-32k"
+        echo "gpt-3.5-turbo"
+        echo "gpt-3.5-turbo-16k"
+    fi
+}
+
 # Function to send a chat completion request to OpenAI
 openai_chat_completion() {
     local prompt="$1"

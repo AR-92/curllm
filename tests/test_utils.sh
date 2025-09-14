@@ -10,9 +10,9 @@ mkdir -p "$TEST_DIR"
 
 # Copy curllm and lib to test directory, maintaining directory structure
 mkdir -p "$TEST_DIR/bin" "$TEST_DIR/lib" "$TEST_DIR/providers"
-cp /home/rana/Documents/Projects/curllm/bin/curllm "$TEST_DIR/bin/"
-cp /home/rana/Documents/Projects/curllm/lib/*.sh "$TEST_DIR/lib/"
-cp /home/rana/Documents/Projects/curllm/providers/*.sh "$TEST_DIR/providers/"
+cp bin/curllm "$TEST_DIR/bin/"
+cp lib/*.sh "$TEST_DIR/lib/"
+cp providers/*.sh "$TEST_DIR/providers/"
 
 echo "Testing utility functions..."
 

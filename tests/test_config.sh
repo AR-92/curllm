@@ -9,7 +9,7 @@ TEST_DIR="/tmp/curllm_config_test"
 mkdir -p "$TEST_DIR"
 
 # Copy curllm to test directory
-cp /home/rana/Documents/Projects/curllm/bin/curllm "$TEST_DIR/"
+cp bin/curllm "$TEST_DIR/"
 
 # Create a test config file
 mkdir -p "$TEST_DIR/.config/curllm"

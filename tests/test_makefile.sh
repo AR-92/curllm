@@ -10,14 +10,14 @@ mkdir -p "$TEST_DIR"
 
 # Copy curllm and lib to test directory, maintaining directory structure
 mkdir -p "$TEST_DIR/bin" "$TEST_DIR/lib" "$TEST_DIR/providers"
-cp /home/rana/Documents/Projects/curllm/bin/curllm "$TEST_DIR/bin/"
-cp /home/rana/Documents/Projects/curllm/lib/*.sh "$TEST_DIR/lib/"
-cp /home/rana/Documents/Projects/curllm/providers/*.sh "$TEST_DIR/providers/"
+cp bin/curllm "$TEST_DIR/bin/"
+cp lib/*.sh "$TEST_DIR/lib/"
+cp providers/*.sh "$TEST_DIR/providers/"
 
 echo "Testing Makefile functionality..."
 
 # Test that Makefile exists
-if [[ -f "/home/rana/Documents/Projects/curllm/Makefile" ]]; then
+if [[ -f "../Makefile" ]]; then
     echo "PASS: Makefile exists"
 else
     echo "FAIL: Makefile is missing"
@@ -25,7 +25,7 @@ else
 fi
 
 # Test that Makefile contains expected targets
-makefile_content=$(cat /home/rana/Documents/Projects/curllm/Makefile)
+makefile_content=$(cat ../Makefile)
 
 targets=("test" "install" "uninstall" "clean" "lint")
 

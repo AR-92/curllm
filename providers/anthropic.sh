@@ -2,6 +2,38 @@
 
 # anthropic.sh - Anthropic provider for curllm
 
+# Function to list available models for Anthropic
+anthropic_list_models() {
+    # Check if we're in mock mode
+    if [[ "${MOCK_MODE:-false}" == "true" ]]; then
+        echo "claude-3-opus-20240229 (mock)"
+        echo "claude-3-sonnet-20240229 (mock)"
+        echo "claude-3-haiku-20240307 (mock)"
+        echo "claude-2.1 (mock)"
+        echo "claude-2.0 (mock)"
+        echo "claude-instant-1.2 (mock)"
+        return 0
+    fi
+    
+    # Get API key
+    local api_key
+    api_key=$(get_api_key "anthropic")
+    
+    # Validate API key
+    if [[ -z "$api_key" ]]; then
+        echo "Error: No Anthropic API key found" >&2
+        return 1
+    fi
+    
+    # For Anthropic, we'll return a static list since there's no API to list models
+    echo "claude-3-opus-20240229"
+    echo "claude-3-sonnet-20240229"
+    echo "claude-3-haiku-20240307"
+    echo "claude-2.1"
+    echo "claude-2.0"
+    echo "claude-instant-1.2"
+}
+
 # Function to send a chat completion request to Anthropic
 anthropic_chat_completion() {
     local prompt="$1"

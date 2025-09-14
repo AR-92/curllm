@@ -18,7 +18,7 @@ doc_files=(
 )
 
 for file in "${doc_files[@]}"; do
-    if [[ -f "/home/rana/Documents/Projects/curllm/$file" ]]; then
+    if [[ -f "../$file" ]]; then
         echo "PASS: Documentation file $file exists"
     else
         echo "FAIL: Documentation file $file is missing"
@@ -27,7 +27,7 @@ for file in "${doc_files[@]}"; do
 done
 
 # Test that README.md contains expected sections
-readme_content=$(cat /home/rana/Documents/Projects/curllm/README.md)
+readme_content=$(cat ../README.md)
 
 sections=("Introduction" "Installation" "Configuration" "Usage" "Mock Mode" "Supported Providers" "Development")
 
@@ -41,7 +41,7 @@ for section in "${sections[@]}"; do
 done
 
 # Test that DOCUMENTATION.md is comprehensive
-doc_content=$(cat /home/rana/Documents/Projects/curllm/DOCUMENTATION.md)
+doc_content=$(cat ../DOCUMENTATION.md)
 
 if echo "$doc_content" | grep -q "Table of Contents"; then
     echo "PASS: DOCUMENTATION.md contains Table of Contents"
